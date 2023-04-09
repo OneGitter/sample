@@ -1585,3 +1585,259 @@ int main() {
     }
 }
 
+// Write a program to take C program as input and identify all types comment line inside the program.  After identifying all types of comment line it’s needs to be written back to a separate file.
+
+#include <stdio.h>
+#include <stdbool.h>
+#include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
+
+void fun(FILE *fp) {
+    FILE *fp1, *fp2;
+
+    fp1 = fopen("type1.txt", "w");
+    if(!fp1) {
+        printf("\nCould not open type1 file");
+        exit(1);
+    }
+    else
+        printf("\nOpening type1 file\n");
+
+    fp2 = fopen("type2.txt", "w");
+    if(!fp2) {
+        printf("\nCould not open type2 file");
+        exit(1);
+    }
+    else
+        printf("\nOpening type2 file\n");
+
+    char ch;
+
+    int f=0;
+    while((ch = fgetc(fp)) != EOF) {
+        printf("%c\n", ch);
+        if(f==0) {
+            if(ch == '/') 
+                f=1;
+        }
+        else if(f==1) {
+            if(ch == '/') 
+                f = 2;
+            else if(ch == '*') 
+                f = 3;
+        }
+        else if(f==2) {
+            fputc(ch, fp1);
+            if(ch == '\n')
+                f = 0;
+        }
+        else if(f==3) {
+            if(ch == '*') 
+                f = 4;
+            else
+                fputc(ch, fp2);
+        }
+        else if(f==4) {
+            if(ch == '/') {
+                f = 0;
+                fputc('\n', fp2);
+            }
+            else {
+                fputc('*', fp2);
+                fputc(ch, fp2);
+                f = 3;
+            }
+        }
+    } 
+
+    fclose(fp1);
+    fclose(fp2);
+}
+
+int main() {
+    FILE *fp;
+    char fname[50];
+
+    printf("\nEnter the source file path: ");
+    scanf("%s", fname);
+
+    fp = fopen(fname,"r");
+    if(!fp) {
+        printf("\nCould not open read file");
+        return 1;
+    }
+    else
+        printf("\nOpening read file\n");
+
+    fun(fp);
+
+    fclose(fp);
+
+    return 0;
+}
+
+// Design a lexical analyzer for given language and the lexical analyzer should ignore redundant spaces, tabs and new lines.
+
+#include <stdio.h>
+#include <stdbool.h>
+#include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
+
+bool check(char temp[]) {
+    char keyword[32][10] = {"auto","break","case","char","const","continue","default",
+                            "do","double","else","enum","extern","float","for","goto",
+                            "if","int","long","register","return","short","signed",
+                            "sizeof","static","struct","switch","typedef","union",
+                            "unsigned","void","volatile","while"};
+
+    for(int i=0; i<32; i++) {
+        if(strcmp(keyword[i], temp) == 0) 
+            return true;
+    }
+    return false;
+}
+
+void fun(FILE *fp) {
+    FILE *fp1, *fp2, *fp3;
+
+    fp1 = fopen("operator.txt", "w");
+    if(!fp1) {
+        printf("\nCould not open operator file");
+        exit(1);
+    }
+    else
+        printf("\nOpening operator file\n");
+
+    fp2 = fopen("keyword.txt", "w");
+    if(!fp2) {
+        printf("\nCould not open keyword file");
+        exit(1);
+    }
+    else
+        printf("\nOpening keyword file\n");
+
+    fp3 = fopen("identifier.txt", "w");
+    if(!fp3) {
+        printf("\nCould not open identifier file");
+        exit(1);
+    }
+    else
+        printf("\nOpening identifier file\n");
+
+    char ch, temp[15], operator[] = "+-*/%=";
+
+    int i=0, f=0;
+    while((ch = fgetc(fp)) != EOF) {
+        for(int j=0; j<6; j++) {
+            if(ch == operator[j])
+                fprintf(fp1, "%c\n", ch);
+        }
+        if(f==2) {
+            if(ch == '\n')
+                f = 0;
+            else
+                continue;
+        }
+        if(ch == '/') {
+            if(f==0)
+                f=1;
+            else
+                f=2;
+        }
+        else if(isalnum(ch)) 
+            temp[i++] = ch;
+        else if((ch == ' ' || ch == '\n') && (i != 0)) {
+            temp[i] = '\0';
+            i = 0;
+            if(check(temp) == 1)
+                fprintf(fp2, "%s\n", temp);
+            else
+                fprintf(fp3, "%s\n", temp);
+        }
+    } 
+}
+
+int main() {
+    FILE *fp;
+    char fname[50];
+
+    printf("\nEnter the source file path: ");
+    scanf("%s", fname);
+
+    fp = fopen(fname,"r");
+    if(!fp) {
+        printf("\nCould not open read file");
+        return 1;
+    }
+    else
+        printf("\nOpening read file\n");
+
+    fun(fp);
+
+    fclose(fp);
+
+    return 0;
+}
+
+// Write a C program to simulate lexical analyzer for validating operators.
+
+#include <stdio.h>
+
+int is_rel(char ch) {
+    if(ch == '<' || ch == '>' || ch == '!' || ch == '=')
+        return 1;
+    return 0;
+}
+
+int is_bit(char ch) {
+    if(ch == '&' || ch == '^' || ch == '~' || ch == '|')
+        return 1;
+    return 0;
+}
+
+int is_ari(char ch) {
+    if(ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '%')
+        return 1;
+    return 0;
+}
+
+void fun(char ch[]) {
+    if(is_rel(ch[0]) && (ch[1]=='=' || ch[1]=='\0')) {
+        printf("\nIt is relational operator");
+        return;
+    }
+
+    if((is_bit(ch[0]) && ch[1]=='\0') || ((ch[0]=='<' || ch[0]=='>') && ch[0]==ch[1])) {
+        printf("\nIt is bitwise operator");
+        return;
+    }
+
+    if(((ch[0]=='&' || ch[0]=='|') && ch[0]==ch[1]) || (ch[0]=='!' && ch[1]=='\0')) {
+        printf("\nIt is logical operator");
+        return;
+    }
+
+    if(ch[0]=='?' && ch[1]==':') {
+        printf("\nIt is ternary operator");
+        return;
+    }
+
+    if((ch[0]=='+' || ch[0]=='-') && ch[0]==ch[1])
+        printf("\nIt is unary operator");
+    else if((is_ari(ch[0]) && ch[1]=='=') || (ch[0]=='=' && ch[1]=='\0'))
+        printf("\nIt is assignment operator");
+    else if(is_ari(ch[0]) && ch[1]=='\0')
+        printf("\nIt is arithmetic operator");
+}
+
+int main() {
+    char ch[2];
+    
+    printf("Enter the string: ");
+    scanf("%s",&ch);
+
+    fun(ch);
+    return 0;
+}
