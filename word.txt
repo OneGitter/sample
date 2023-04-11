@@ -1904,5 +1904,35 @@ return(1);
 }
 
 lex exp.l
-cc lex.yy.c
+gcc lex.yy.c
 ./a.out
+
+
+// for comments printing c++
+
+#include <iostream>
+#include <fstream>
+#include <string>
+
+using namespace std;
+
+bool is_comment(const string& line) {
+    return line.find("//") == 0 || line.find("/*") != string::npos;
+}
+
+int main() {
+    string line;
+    ifstream input("pro.cpp");
+    ofstream output("comm.txt");
+
+    while (getline(input, line)) {
+        if (is_comment(line)) {
+            output << line << endl;
+        }
+    }
+
+    input.close();
+    output.close();
+
+    return 0;
+}
